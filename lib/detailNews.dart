@@ -1,52 +1,78 @@
 import 'package:flutter/material.dart';
+import 'package:newhome/admin/article_add_form.dart';
 
 class DetailNews extends StatelessWidget {
-  const DetailNews({Key? key}) : super(key: key);
+  final Article article;
+
+  const DetailNews({Key? key, required this.article}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
         appBar: AppBar(
           title: const Text('Detail News'),
           backgroundColor: Color.fromARGB(255, 93, 100, 115),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
         ),
         body: Container(
           color: Colors.white,
           padding: EdgeInsets.all(8),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DefaultTextStyle(
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: DefaultTextStyle(
+                  textAlign: TextAlign.left,
                   style: TextStyle(
-                      fontSize: 24,
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold),
+                    fontSize: 20,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
                   child: Text(
-                    'Cuaca di Bojongsoang Hari Ini',
-                  )),
-              DefaultTextStyle(
-                  style: TextStyle(fontSize: 12, color: Colors.black),
-                  child: Text('Syahdee - 15 Feb')),
+                    article.title,
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: DefaultTextStyle(
+                  style: TextStyle(fontSize: 16, color: Colors.black),
+                  child: Text('by ${article.author}'),
+                ),
+              ),
+              Divider(),
               Container(
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20.0),
-                    image: DecorationImage(
-                        image: NetworkImage(
-                            "https://www.infoplease.com/sites/infoplease.com/files/styles/scale800w/public/daily-images/Weather-of-the-Day.jpg?itok=An4IRbv1"))),
+                  borderRadius: BorderRadius.circular(20.0),
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: NetworkImage(article.imgLink),
+                  ),
+                ),
                 height: screenHeight / 3,
                 margin: EdgeInsets.all(8),
               ),
-              const SingleChildScrollView(
-                  child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20),
-                      child: DefaultTextStyle(
-                          style: TextStyle(fontSize: 14, color: Colors.black),
-                          child: Text(
-                              'Cuaca hari ini sangatlah tidak jelas. Banyak sekali burung berterbangan di sekitar area danau galau.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Nam consequat, mauris id tincidunt dictum, purus lectus pharetra metus, ac rhoncus lorem orci eu purus. Sed eros tellus, congue ac aliquet sit amet, tristique eget purus. Integer maximus lacus congue, porttitor augue id, porttitor augue. Nulla nec lorem congue, rhoncus ante vitae, hendrerit leo. Integer at sodales risus, sed vehicula lorem. Pellentesque non pellentesque purus, non pretium sapien. Phasellus a tortor neque. Curabitur vel rhoncus tortor. Morbi eu lacus sit amet libero facilisis eleifend. Curabitur neque ex, mattis eget sagittis quis, iaculis sed diam.'))))
+              SizedBox(height: 10),
+              SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: DefaultTextStyle(
+                    style: TextStyle(fontSize: 16, color: Colors.black),
+                    child: Text(article.desc),
+                  ),
+                ),
+              ),
             ],
-          ),
+          )
         ));
   }
 }

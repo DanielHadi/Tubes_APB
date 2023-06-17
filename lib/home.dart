@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'detail2.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Scaffold(
+        body: Container(
       decoration: const BoxDecoration(
           gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -16,47 +18,74 @@ class HomePage extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           InkWell(
-            child: Positioned(
-              top: MediaQuery.of(context).size.height / 5,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.all(5.0),
-                    child: DefaultTextStyle(
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 36.0,
-                          fontWeight: FontWeight.bold),
-                      child: Text("Bandung"), //lokasi
-                    ),
-                  ),
-                  const DefaultTextStyle(
-                    style: TextStyle(color: Colors.white, fontSize: 18.0),
-                    child: Text("Sabtu 13, Mei"), //tanggal
-                  ),
-                  Padding(
-                      padding: const EdgeInsets.all(30.0),
-                      child: Image.asset(
-                        'weather-icons/wind.png',
-                        scale: 1.5,
-                      )),
-                  const DefaultTextStyle(
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 50.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    child: Text('29°C'),
-                  ),
-                  const Padding(
-                      padding: EdgeInsets.all(5.0),
-                      child: DefaultTextStyle(
-                        style: TextStyle(color: Colors.white, fontSize: 16.0),
-                        child: Text('Mendung Berangin'),
-                      )),
-                ],
-              ),
+            child: FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('home')
+                  .doc('kondisi')
+                  .get(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  var data = snapshot.data!.data() as Map<String, dynamic>?;
+
+                  if (data != null) {
+                    var lokasi = data['lokasi'];
+                    var tanggal = data['tanggal'];
+                    var imgPath = data['imgPath'];
+                    var suhu = data['suhu'];
+                    var status = data['status'];
+
+                    return Positioned(
+                      top: MediaQuery.of(context).size.height / 5,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(5.0),
+                            child: DefaultTextStyle(
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 36.0,
+                                  fontWeight: FontWeight.bold),
+                              child: Text(lokasi), //lokasi
+                            ),
+                          ),
+                          DefaultTextStyle(
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 18.0),
+                            child: Text(tanggal), //tanggal
+                          ),
+                          Padding(
+                              padding: const EdgeInsets.all(30.0),
+                              child: Image.asset(
+                                imgPath,
+                                scale: 1.5,
+                              )),
+                          DefaultTextStyle(
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 50.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            child: Text(suhu),
+                          ),
+                          Padding(
+                              padding: EdgeInsets.all(5.0),
+                              child: DefaultTextStyle(
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16.0),
+                                child: Text(status),
+                              )),
+                        ],
+                      ),
+                    );
+                  } else {
+                    return Text('No Data Available');
+                  }
+                } else if (snapshot.hasError) {
+                  print('Error: ${snapshot.error}');
+                }
+                return CircularProgressIndicator();
+              },
             ),
             onTap: () {
               showDialog(
@@ -66,10 +95,13 @@ class HomePage extends StatelessWidget {
                       content: const Detail2(),
                       actions: [
                         TextButton(
-                              child: Text('Close',style: TextStyle(fontWeight: FontWeight.bold),),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              }), 
+                            child: Text(
+                              'Close',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            }),
                       ],
                     );
                   });
@@ -200,6 +232,6 @@ class HomePage extends StatelessWidget {
           )
         ],
       ),
-    );
+    ));
   }
 }

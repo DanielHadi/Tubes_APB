@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:newhome/admin/admin_article.dart';
 import 'package:newhome/nav_bar.dart';
 import 'package:newhome/reusable_widget.dart';
 import 'package:newhome/screens/reset_password.dart';
@@ -34,8 +36,8 @@ class _SignInScreenState extends State<SignInScreen> {
                 const SizedBox(
                   height: 30,
                 ),
-                reusableTextField("Username", Icons.person_outline, false,
-                    _emailTextController),
+                reusableTextField(
+                    "Email", Icons.person_outline, false, _emailTextController),
                 const SizedBox(
                   height: 10,
                 ),
@@ -51,10 +53,53 @@ class _SignInScreenState extends State<SignInScreen> {
                           email: _emailTextController.text,
                           password: _passwordTextController.text)
                       .then((value) {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const CustomNavBar()));
+                    // Mengambil data pengguna saat ini
+                    User? user = FirebaseAuth.instance.currentUser;
+
+                    // Mengambil dokumen pengguna dari koleksi 'users' berdasarkan ID pengguna
+                    FirebaseFirestore.instance
+                        .collection('users')
+                        .where('email', isEqualTo: user!.email)
+                        .get()
+                        .then((docSnapshot) {
+                      if (docSnapshot.docs.isNotEmpty) {
+                        DocumentReference docRef =
+                            docSnapshot.docs[0].reference;
+                        docRef.get().then((value) {
+                          if (value.exists) {
+                            Map<String, dynamic> userData =
+                                value.data() as Map<String, dynamic>;
+                            bool isAdmin = userData['isAdmin'] ?? false;
+
+                            if (isAdmin) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          'Berhasil Login sebagai Admin!')));
+                              Future.delayed(const Duration(seconds: 1), () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const AdminArticlePage()));
+                              });
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Berhasil Login!')));
+
+                              Future.delayed(const Duration(seconds: 1), () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const CustomNavBar()));
+                              });
+                            }
+                          }
+                        });
+                      }
+                    });
                   }).onError((error, stackTrace) {
                     print("Error ${error.toString()}");
                   });
@@ -98,7 +143,7 @@ class _SignInScreenState extends State<SignInScreen> {
       child: TextButton(
         child: const Text(
           "Lupa Kata Sandi?",
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Colors.black),
           textAlign: TextAlign.right,
         ),
         onPressed: () => Navigator.push(

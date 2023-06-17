@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:newhome/reusable_widget.dart';
 import 'package:newhome/screens/signin_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
@@ -14,14 +15,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   TextEditingController _passwordTextController = TextEditingController();
   TextEditingController _emailTextController = TextEditingController();
   TextEditingController _userNameTextController = TextEditingController();
+  TextEditingController _nameTextController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      resizeToAvoidBottomInset: true,
       body: Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
@@ -42,8 +41,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(
                   height: 20,
                 ),
-                reusableTextField("Name", Icons.person_outline, false,
-                    _userNameTextController),
+                reusableTextField(
+                    "Name", Icons.person_outline, false, _nameTextController),
                 const SizedBox(
                   height: 10,
                 ),
@@ -69,11 +68,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           password: _passwordTextController.text)
                       .then((value) {
                     print("Created New Account");
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => SignInScreen()));
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Akun Berhasil Dibuat!')));
+
+                    Future.delayed(const Duration(seconds: 1), () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SignInScreen()));
+                    });
                   }).onError((error, stackTrace) {
                     print("Error ${error.toString()}");
                   });
+                  addUserDetails(
+                      _nameTextController.text.trim(),
+                      _userNameTextController.text.trim(),
+                      _emailTextController.text.trim());
                 }),
                 signUpOption()
               ],
@@ -81,6 +92,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ))),
     );
   }
+
+  Future addUserDetails(String name, String username, String email) async {
+    CollectionReference collectionRef =
+        FirebaseFirestore.instance.collection('users');
+
+    Map<String, dynamic> data = {
+      'id': collectionRef.doc().id,
+      'name': name,
+      'username': username,
+      'email': email,
+      'imgLink': "",
+      'isAdmin' : false,
+    };
+    await collectionRef.doc().set(data);
+  }
+
   Row signUpOption() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -94,7 +121,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           },
           child: const Text(
             " LOGIN",
-            style: TextStyle(color: Color.fromARGB(255, 21, 94, 99), fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: Color.fromARGB(255, 21, 94, 99),
+                fontWeight: FontWeight.bold),
           ),
         )
       ],

@@ -7,9 +7,15 @@ CircleAvatar logoWidget(String imageName) {
   );
 }
 
-TextField reusableTextField(String text, IconData icon, bool isPasswordType,
+TextFormField reusableTextField(String text, IconData icon, bool isPasswordType,
     TextEditingController controller) {
-  return TextField(
+  return TextFormField(
+    validator: (value) {
+      if (value!.isEmpty) {
+        return 'Fill this Field';
+      }
+      return null;
+    },
     controller: controller,
     obscureText: isPasswordType,
     enableSuggestions: !isPasswordType,
